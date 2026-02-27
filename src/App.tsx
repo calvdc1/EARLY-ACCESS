@@ -895,6 +895,7 @@ export default function App() {
   const [typingUsers, setTypingUsers] = useState<Record<string, string[]>>({}); // roomId -> names[]
   const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
   const [showMobileSidebar, setShowMobileSidebar] = useState(true);
+  const [showMobileNavigator, setShowMobileNavigator] = useState(false);
   const mouseRafRef = useRef<number | null>(null);
   const pendingMouseRef = useRef({ x: 0, y: 0 });
   const [directMessageList, setDirectMessageList] = useState<{ id: number; name: string; roomId: string; lastMessage?: string; unread: number; avatar?: string; campus?: string }[]>([]);
@@ -1797,6 +1798,14 @@ export default function App() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="hidden sm:inline text-xs text-gray-400">{user?.email}</span>
+                {/* Mobile Navigator Toggle - Header */}
+                <button
+                  onClick={() => setShowMobileNavigator(!showMobileNavigator)}
+                  className="md:hidden p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-amber-500 transition-colors"
+                  title="Menu"
+                >
+                  {showMobileNavigator ? <X size={18} /> : <Menu size={18} />}
+                </button>
                 <button
                   onClick={handleLogout}
                   className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white transition-colors text-xs font-medium"
@@ -2446,7 +2455,7 @@ export default function App() {
     return (
       <div className="h-full w-full bg-[#0a0502] flex flex-col md:flex-row overflow-hidden">
         {/* Sidebar - Campus List */}
-        <div className="w-full md:w-80 border-r border-white/5 flex flex-col shrink-0 bg-black/40 backdrop-blur-md">
+        <div className="hidden md:flex w-full md:w-80 border-r border-white/5 flex-col shrink-0 bg-black/40 backdrop-blur-md">
           <div className="p-6 border-b border-white/5">
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-xl font-bold text-white">MSU <span className="text-amber-500">System</span></h2>
@@ -2506,7 +2515,18 @@ export default function App() {
                 </div>
               </div>
               
-              <div className="flex gap-3">
+              <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                {/* Mobile Campus Selector */}
+                <select
+                  value={activeCampusSlug}
+                  onChange={(e) => setActiveCampusSlug(e.target.value)}
+                  className="md:hidden px-4 py-2.5 rounded-xl bg-black/60 border border-[#b99740]/35 text-[#f1dfab] text-xs font-bold appearance-none cursor-pointer hover:border-[#b99740]/50 transition-all"
+                >
+                  {CAMPUSES.map(c => (
+                    <option key={c.slug} value={c.slug} className="bg-[#0a0502]">{c.name}</option>
+                  ))}
+                </select>
+
                 <button
                   onClick={() => window.open(activeCampus.website, '_blank', 'noopener,noreferrer')}
                   className="px-6 py-2.5 rounded-xl bg-gradient-to-br from-[#2f2a1b] to-[#1a1712] border border-[#b99740]/35 text-xs font-bold text-[#f1dfab] hover:from-[#3a3422] hover:to-[#211d16] transition-all backdrop-blur-md"
@@ -2536,8 +2556,8 @@ export default function App() {
           <div className="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-8 p-8 max-w-7xl mx-auto w-full">
             {/* Left: Stats & Info */}
             <div className="xl:col-span-4 space-y-8">
-              <section className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl">
-                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500/60 mb-6">Campus Overview</h3>
+              <section className="p-8 rounded-[2rem] section-metallic-dark border border-white/10 backdrop-blur-md shadow-2xl relative overflow-hidden">
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-metallic-gold mb-6">Campus Overview</h3>
                 <p className="text-gray-300 text-sm leading-relaxed mb-8 font-medium italic">
                   "{activeCampus.description}"
                 </p>
@@ -2573,8 +2593,8 @@ export default function App() {
                 </div>
               </section>
 
-              <section className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md">
-                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500/60 mb-6">Official Channels</h3>
+              <section className="p-8 rounded-[2rem] section-metallic-dark border border-white/10 backdrop-blur-md relative overflow-hidden">
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-metallic-gold mb-6">Official Channels</h3>
                 <div className="space-y-3">
                   {[
                     { name: 'Chancellor\'s Office', icon: <ShieldCheck size={16} /> },
@@ -5030,6 +5050,176 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Mobile Navigator - Right Sidebar */}
+      <AnimatePresence>
+        {showMobileNavigator && isLoggedIn && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileNavigator(false)}
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+            />
+            {/* Sidebar */}
+            <motion.div
+              initial={{ x: 400, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 400, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed right-0 top-0 h-full w-80 z-50 bg-[#1a1a1f] border-l border-white/10 overflow-y-auto scrollbar-hide md:hidden"
+            >
+              <div className="flex flex-col h-full">
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-white/10">
+                  <h2 className="text-xl font-bold text-white">Menu</h2>
+                  <button
+                    onClick={() => setShowMobileNavigator(false)}
+                    className="p-2 rounded-lg hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                {/* Navigation Items */}
+                <div className="flex-1 flex flex-col gap-2 p-4">
+                  {/* Profile Section */}
+                  <button
+                    onClick={() => { setView('profile'); setShowMobileNavigator(false); }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white group"
+                  >
+                    <UserIcon size={20} className="group-hover:text-amber-500 transition-colors" />
+                    <span className="font-medium">Profile</span>
+                  </button>
+
+                  {/* Home */}
+                  <button
+                    onClick={() => { setView('dashboard'); setShowMobileNavigator(false); }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white group"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:text-amber-500 transition-colors">
+                      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span className="font-medium">Home</span>
+                  </button>
+
+                  {/* Messenger */}
+                  <button
+                    onClick={() => { setView('messenger'); setShowMobileNavigator(false); }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white group"
+                  >
+                    <MessageCircle size={20} className="group-hover:text-amber-500 transition-colors" />
+                    <span className="font-medium">Messages</span>
+                    {Object.values(unreadCounts).some(count => count > 0) && (
+                      <span className="ml-auto px-2 py-1 rounded-full bg-rose-500 text-white text-xs font-bold">
+                        {Object.values(unreadCounts).reduce((a, b) => a + b, 0)}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Explorer */}
+                  <button
+                    onClick={() => { setView('explorer'); setShowMobileNavigator(false); }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white group"
+                  >
+                    <Globe size={20} className="group-hover:text-amber-500 transition-colors" />
+                    <span className="font-medium">Explore</span>
+                  </button>
+
+                  {/* Divider */}
+                  <div className="h-px bg-white/10 my-2" />
+
+                  {/* Quick Actions */}
+                  <button
+                    onClick={() => { setView('newsfeed'); setShowMobileNavigator(false); }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white group"
+                  >
+                    <Hash size={20} className="group-hover:text-amber-500 transition-colors" />
+                    <span className="font-medium">Newsfeed</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setView('confession'); setShowMobileNavigator(false); }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white group"
+                  >
+                    <Sparkles size={20} className="group-hover:text-amber-500 transition-colors" />
+                    <span className="font-medium">Confession</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setView('scheduler'); setShowMobileNavigator(false); }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white group"
+                  >
+                    <CalendarDays size={20} className="group-hover:text-amber-500 transition-colors" />
+                    <span className="font-medium">Schedule</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setView('lostfound'); setShowMobileNavigator(false); }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white group"
+                  >
+                    <Search size={20} className="group-hover:text-amber-500 transition-colors" />
+                    <span className="font-medium">Lost & Found</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setView('feedbacks'); setShowMobileNavigator(false); }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white group"
+                  >
+                    <Info size={20} className="group-hover:text-amber-500 transition-colors" />
+                    <span className="font-medium">Feedback</span>
+                  </button>
+
+                  {/* Divider */}
+                  <div className="h-px bg-white/10 my-2" />
+
+                  {/* Settings */}
+                  <button
+                    onClick={() => setShowMobileNavigator(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white group"
+                  >
+                    <Settings size={20} className="group-hover:text-amber-500 transition-colors" />
+                    <span className="font-medium">Settings</span>
+                  </button>
+
+                  {/* Logout */}
+                  <button
+                    onClick={() => {
+                      setUser(null);
+                      setView('home');
+                      setShowMobileNavigator(false);
+                      localStorage.removeItem('onemsu_auth');
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-rose-500/20 transition-colors text-gray-300 hover:text-rose-400 group"
+                  >
+                    <LogOut size={20} className="group-hover:text-rose-400 transition-colors" />
+                    <span className="font-medium">Logout</span>
+                  </button>
+                </div>
+
+                {/* Footer Info */}
+                <div className="p-4 border-t border-white/10">
+                  {user && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                        <UserIcon size={16} className="text-amber-500" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{user.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.campus || 'MSU'}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
