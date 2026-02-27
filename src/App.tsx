@@ -2537,7 +2537,7 @@ export default function App() {
             {/* Left: Stats & Info */}
             <div className="xl:col-span-4 space-y-8">
               <section className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl">
-                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500/60 mb-6">Campus Overview</h3>
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-metallic-gold mb-6">Campus Overview</h3>
                 <p className="text-gray-300 text-sm leading-relaxed mb-8 font-medium italic">
                   "{activeCampus.description}"
                 </p>
@@ -2574,7 +2574,7 @@ export default function App() {
               </section>
 
               <section className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md">
-                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-amber-500/60 mb-6">Official Channels</h3>
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-metallic-gold mb-6">Official Channels</h3>
                 <div className="space-y-3">
                   {[
                     { name: 'Chancellor\'s Office', icon: <ShieldCheck size={16} /> },
