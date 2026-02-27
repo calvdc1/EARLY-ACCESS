@@ -1798,6 +1798,14 @@ export default function App() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="hidden sm:inline text-xs text-gray-400">{user?.email}</span>
+                {/* Mobile Navigator Toggle - Header */}
+                <button
+                  onClick={() => setShowMobileNavigator(!showMobileNavigator)}
+                  className="md:hidden p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-amber-500 transition-colors"
+                  title="Menu"
+                >
+                  {showMobileNavigator ? <X size={18} /> : <Menu size={18} />}
+                </button>
                 <button
                   onClick={handleLogout}
                   className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white transition-colors text-xs font-medium"
@@ -2447,7 +2455,7 @@ export default function App() {
     return (
       <div className="h-full w-full bg-[#0a0502] flex flex-col md:flex-row overflow-hidden">
         {/* Sidebar - Campus List */}
-        <div className="w-full md:w-80 border-r border-white/5 flex flex-col shrink-0 bg-black/40 backdrop-blur-md">
+        <div className="hidden md:flex w-full md:w-80 border-r border-white/5 flex-col shrink-0 bg-black/40 backdrop-blur-md">
           <div className="p-6 border-b border-white/5">
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-xl font-bold text-white">MSU <span className="text-amber-500">System</span></h2>
@@ -2507,7 +2515,18 @@ export default function App() {
                 </div>
               </div>
               
-              <div className="flex gap-3">
+              <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                {/* Mobile Campus Selector */}
+                <select
+                  value={activeCampusSlug}
+                  onChange={(e) => setActiveCampusSlug(e.target.value)}
+                  className="md:hidden px-4 py-2.5 rounded-xl bg-black/60 border border-[#b99740]/35 text-[#f1dfab] text-xs font-bold appearance-none cursor-pointer hover:border-[#b99740]/50 transition-all"
+                >
+                  {CAMPUSES.map(c => (
+                    <option key={c.slug} value={c.slug} className="bg-[#0a0502]">{c.name}</option>
+                  ))}
+                </select>
+
                 <button
                   onClick={() => window.open(activeCampus.website, '_blank', 'noopener,noreferrer')}
                   className="px-6 py-2.5 rounded-xl bg-gradient-to-br from-[#2f2a1b] to-[#1a1712] border border-[#b99740]/35 text-xs font-bold text-[#f1dfab] hover:from-[#3a3422] hover:to-[#211d16] transition-all backdrop-blur-md"
@@ -5201,15 +5220,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Mobile Navigator Toggle Button */}
-      {isLoggedIn && (
-        <button
-          onClick={() => setShowMobileNavigator(!showMobileNavigator)}
-          className="fixed right-6 bottom-6 z-30 p-4 rounded-full bg-amber-500 text-black shadow-lg hover:bg-amber-400 transition-all hover:scale-110 md:hidden"
-        >
-          {showMobileNavigator ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      )}
     </div>
   );
 }
