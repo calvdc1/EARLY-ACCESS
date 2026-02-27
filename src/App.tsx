@@ -2536,7 +2536,7 @@ export default function App() {
           <div className="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-8 p-8 max-w-7xl mx-auto w-full">
             {/* Left: Stats & Info */}
             <div className="xl:col-span-4 space-y-8">
-              <section className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl">
+              <section className="p-8 rounded-[2rem] section-metallic-dark border border-white/10 backdrop-blur-md shadow-2xl relative overflow-hidden">
                 <h3 className="text-xs font-black uppercase tracking-[0.3em] text-metallic-gold mb-6">Campus Overview</h3>
                 <p className="text-gray-300 text-sm leading-relaxed mb-8 font-medium italic">
                   "{activeCampus.description}"
@@ -2573,7 +2573,7 @@ export default function App() {
                 </div>
               </section>
 
-              <section className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md">
+              <section className="p-8 rounded-[2rem] section-metallic-dark border border-white/10 backdrop-blur-md relative overflow-hidden">
                 <h3 className="text-xs font-black uppercase tracking-[0.3em] text-metallic-gold mb-6">Official Channels</h3>
                 <div className="space-y-3">
                   {[
