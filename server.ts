@@ -823,6 +823,15 @@ async function startServer() {
     res.json({ success: true });
   });
 
+
+  app.post("/api/messages/clear-all", (_req, res) => {
+    db.prepare('DELETE FROM message_reactions').run();
+    db.prepare('DELETE FROM deleted_messages').run();
+    db.prepare('DELETE FROM read_receipts').run();
+    db.prepare('DELETE FROM messages').run();
+    res.json({ success: true });
+  });
+
   app.get("/api/messenger/recent-dms", (req, res) => {
     const userId = Number(req.query.userId);
     if (!Number.isFinite(userId)) return res.status(400).json({ success: false, message: "Missing userId" });
