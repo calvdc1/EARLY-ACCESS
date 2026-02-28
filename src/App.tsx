@@ -1043,18 +1043,10 @@ export default function App() {
         if (data.type === 'chat') {
           const msg = normalizeIncoming(data);
 
-          // If server echoes our optimistic message, remove the optimistic one by clientId
+          // If server echoes our optimistic message, replace the optimistic one with the server version
           if (msg.clientId && pendingClientIds.current.has(String(msg.clientId))) {
             pendingClientIds.current.delete(String(msg.clientId));
-            setMessages(prev => prev.filter(m => (m as any).clientId !== msg.clientId));
-          } else if (msg.sender_id === user.id && !msg.clientId) {
-             setMessages(prev => {
-                const lastMsg = prev[prev.length - 1];
-                if (lastMsg && (lastMsg as any).clientId && lastMsg.content === msg.content && lastMsg.sender_id === msg.sender_id) {
-                   return [...prev.slice(0, -1), msg];
-                }
-                return prev;
-             });
+            setMessages(prev => prev.map(m => (m as any).clientId === msg.clientId ? msg : m));
           }
 
           const msgId = String(msg.id);
@@ -1075,16 +1067,16 @@ export default function App() {
               [msg.roomId]: (prev[msg.roomId] || 0) + 1
             }));
 
-            setToast({ 
-              message: `${msg.sender_name}: ${String(msg.content).substring(0, 30)}${String(msg.content).length > 30 ? '...' : ''}`, 
-              roomId: msg.roomId 
+            setToast({
+              message: `${msg.sender_name}: ${String(msg.content).substring(0, 30)}${String(msg.content).length > 30 ? '...' : ''}`,
+              roomId: msg.roomId
             });
             setTimeout(() => setToast(null), 5000);
 
             // Play sound
             try {
               const NOTIFICATION_AUDIO = 'data:audio/mp3;base64,//uQxAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//uQxAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
-              const sound = new Audio(NOTIFICATION_AUDIO); 
+              const sound = new Audio(NOTIFICATION_AUDIO);
               sound.volume = 0.5;
               sound.play().catch(e => console.log('Audio play failed', e));
             } catch (e) {}
