@@ -1671,338 +1671,129 @@ export default function App() {
       .filter(([room]) => room.startsWith('dm-') || room.startsWith('group-') || ['global', 'help-desk'].includes(room))
       .reduce((sum, [_, count]) => (sum as number) + (count as number), 0);
 
-    const updatesUnread = Object.entries(unreadCounts)
-      .filter(([room]) => room.startsWith('newsfeed-') || room === 'announcements')
-      .reduce((sum, [_, count]) => (sum as number) + (count as number), 0);
-
     return (
-    <div className="h-full w-full bg-[#0a0502] p-4 md:p-8 lg:p-12 overflow-y-auto scrollbar-hide">
-      <div className="max-w-7xl mx-auto pb-20">
-        <header className="flex justify-between items-center mb-12">
-          <div className="flex items-center gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-white">Welcome back, {user?.name || 'MSUan'}!</h2>
-              <p className="text-gray-500 text-sm">Connected to {user?.email || 'Unified System'}</p>
+      <div className="h-full w-full overflow-y-auto bg-gradient-to-br from-[#eff2ff] via-[#f7f8fc] to-[#eef1ff] p-4 md:p-6">
+        <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-5 xl:grid-cols-[260px,1fr,300px]">
+          <aside className="rounded-3xl border border-[#dbe1ff] bg-white p-5 shadow-sm">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#4f46e5] text-white font-bold">S</div>
+              <h2 className="text-2xl font-semibold text-slate-800">slothui</h2>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={handleLogout}
-              className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white transition-colors text-sm font-medium"
-            >
-              Sign Out
-            </button>
-          </div>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar (Special Features) */}
-          <div className="lg:col-span-1 space-y-8 order-2 lg:order-1">
-            <div className="card-gold p-6 rounded-3xl relative overflow-hidden group cursor-pointer" onClick={() => { setActiveRoom('dm-ai-assistant'); setView('messenger'); }}>
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 rounded-2xl bg-indigo-500/20 text-indigo-400">
-                    <Bot size={24} />
-                  </div>
-                  <span className="px-2 py-1 rounded-full bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-wider">Special</span>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">JARVIS</h3>
-                <p className="text-gray-400 text-xs leading-relaxed mb-4">
-                  Your advanced AI companion. Ask anything about MSU, academics, or general knowledge.
-                </p>
-                <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold">
-                  Launch Assistant <ArrowRight size={14} />
-                </div>
-              </div>
-              {/* Decorative AI lines */}
-              <div className="absolute -bottom-4 -right-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Bot size={80} />
-              </div>
+            <div className="mb-4 flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-slate-500">
+              <Search size={16} />
+              <span className="text-sm">Search...</span>
             </div>
-
-            <div className="card-gold p-6 rounded-3xl">
-              <h3 className="font-bold mb-4 flex items-center gap-2"><Globe size={18} className="text-amber-500" /> Campus Information</h3>
-              <div className="space-y-3">
-                {CAMPUSES.map((c) => (
-                  <div key={c.slug} className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-500/30 transition-all group">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 shrink-0 rounded-xl overflow-hidden shadow-lg">
-                        <CampusLogo slug={c.slug} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-bold text-white group-hover:text-amber-400 transition-colors">{c.name}</h4>
-                          <button 
-                            onClick={() => { setSelectedCampus(c); setShowCampusModal(true); }}
-                            className="text-[10px] font-bold px-2 py-1 rounded-full bg-white/10 hover:bg-amber-500 hover:text-black transition-colors"
-                          >
-                            About
-                          </button>
-                        </div>
-                        <div className="flex items-center gap-1 text-[10px] text-gray-400 mt-1 mb-2">
-                          <MapPin size={10} /> {c.location}
-                        </div>
-                        <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
-                          {c.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="card-gold p-6 rounded-3xl">
-              <h3 className="font-bold mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { name: 'Messenger', icon: <MessageCircle size={14} />, action: () => setView('messenger'), unread: messengerUnread },
-                  { name: 'Lost & Found', icon: <Search size={14} />, action: () => setView('lostfound') },
-                  { name: 'Library', icon: <BookOpen size={14} />, action: () => window.open('https://openlibrary.org', '_blank') },
-                  { name: 'Grades', icon: <Sparkles size={14} /> },
-                  { name: 'Finance', icon: <ShieldCheck size={14} /> },
-                  { name: 'Discord', icon: <ExternalLink size={14} />, action: () => window.open('https://discord.gg/gjuygmrPnR', '_blank') },
-                  { name: 'Profile', icon: <Users size={14} />, action: () => setView('profile') },
-                  { name: 'Updates', icon: <MessageSquare size={14} />, action: () => setView('newsfeed'), unread: updatesUnread },
-                  { name: 'Confession', icon: <Sparkles size={14} />, action: () => setView('confession') },
-                  { name: 'Explorer', icon: <Globe size={14} />, action: () => setView('explorer') },
-                  { name: 'Feedbacks', icon: <Info size={14} />, action: () => setView('feedbacks') }
-                ].map(item => (
-                  <button 
-                    key={item.name} 
-                    onClick={() => item.action ? item.action() : null}
-                    className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs font-medium hover:bg-amber-500 hover:text-black transition-all flex flex-col items-center gap-2 relative group"
-                  >
-                    {(item as any).unread > 0 && (
-                      <motion.span
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ 
-                          scale: [1, 1.2, 1],
-                          opacity: 1 
-                        }}
-                        transition={{
-                          scale: { repeat: Infinity, duration: 2, ease: "easeInOut" }
-                        }}
-                        className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg shadow-rose-900/40 z-10"
-                      >
-                        {(item as any).unread > 99 ? '99+' : (item as any).unread}
-                      </motion.span>
-                    )}
-                    {item.icon}
-                    {item.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-bold flex items-center gap-2"><BookOpen size={18} className="text-amber-500" /> Notes</h4>
+            <nav className="space-y-2 text-sm">
+              {[
+                { label: 'Home', action: () => setView('dashboard') },
+                { label: 'Tasks', action: () => setView('messenger') },
+                { label: 'Users', action: () => setView('profile') },
+                { label: 'APIs', action: () => setView('explorer') },
+                { label: 'Subscription' },
+                { label: 'Settings', action: () => setSettingsOpen(true) },
+                { label: 'Help & Support', action: () => setView('feedbacks') },
+              ].map((item, i) => (
                 <button
-                  onClick={() => {
-                    const palette = [
-                      'bg-amber-500/20 border-amber-500/30',
-                      'bg-rose-500/20 border-rose-500/30',
-                      'bg-emerald-500/20 border-emerald-500/30',
-                      'bg-sky-500/20 border-sky-500/30',
-                      'bg-purple-500/20 border-purple-500/30'
-                    ];
-                    const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
-                    const color = palette[Math.floor(Math.random() * palette.length)];
-                    setStickyNotes(prev => [{ id, content: '', color, createdAt: new Date().toISOString() }, ...prev]);
-                  }}
-                  className="p-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20"
-                  title="Add note"
-                  aria-label="Add note"
+                  key={item.label}
+                  onClick={item.action}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition ${i === 0 ? 'bg-[#eef0ff] text-[#4338ca] font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
-                  <Plus size={16} />
+                  <span>{item.label}</span>
+                  {item.label === 'Tasks' && <span className="rounded-full bg-[#eef0ff] px-2 text-xs text-[#4338ca]">{messengerUnread}</span>}
                 </button>
+              ))}
+            </nav>
+            <div className="mt-8 rounded-2xl bg-[#f8f9ff] p-4 text-sm text-slate-600">
+              <p className="mb-3">Enjoy unlimited access to our app with only a small price monthly.</p>
+              <div className="flex items-center justify-between text-sm">
+                <button className="text-slate-500">Dismiss</button>
+                <button className="font-semibold text-[#4338ca]">Go Pro</button>
               </div>
-              {stickyNotes.length === 0 ? (
-                <p className="text-sm text-gray-500">No notes yet. Use + to create a sticky note.</p>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto scrollbar-hide">
-                  {stickyNotes.slice(0, 4).map(n => (
-                    <div key={n.id} className={`p-3 rounded-2xl border ${n.color} transition-all hover:scale-[1.02]`}>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-[10px] text-white/60 font-medium">{new Date(n.createdAt).toLocaleDateString()}</span>
-                        <button
-                          className="text-xs text-white/60 hover:text-white transition-colors"
-                          onClick={() => setStickyNotes(prev => prev.filter(x => x.id !== n.id))}
-                          title="Delete note"
-                          aria-label="Delete note"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                      <textarea
-                        value={n.content}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          setStickyNotes(prev => prev.map(x => x.id === n.id ? { ...x, content: v } : x));
-                        }}
-                        placeholder="Write a note…"
-                        className="w-full h-28 bg-transparent text-sm text-white placeholder-white/40 focus:outline-none resize-none"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-          </div>
+          </aside>
 
-          {/* Main Feed */}
-          <div className="lg:col-span-3 space-y-8 order-1 lg:order-2">
-            <div className="card-gold p-8 rounded-3xl">
-              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <Sparkles className="text-amber-500" size={20} /> Confession Wall
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {freedomPosts.slice(0, 5).map((p) => (
-                  <div key={p.id} className={`rounded-2xl overflow-hidden bg-white/5 border border-white/10 ${freedomPosts.indexOf(p) === 0 ? 'md:col-span-2' : ''}`}>
-                    {p.image_url && <img src={p.image_url} alt="" className={`${freedomPosts.indexOf(p) === 0 ? 'h-48' : 'h-32'} w-full object-cover`} />}
-                    <div className="p-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-bold text-amber-400">{p.alias}</span>
-                        <span className="text-[10px] text-gray-500">{p.campus} • {new Date(p.timestamp).toLocaleDateString()}</span>
-                      </div>
-                      <div className={`mt-2 ${freedomPosts.indexOf(p) === 0 ? 'text-base' : 'text-sm'} text-gray-200 line-clamp-3`}>{p.content}</div>
+          <main className="rounded-3xl border border-[#dbe1ff] bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-6">
+              <div className="grid grid-cols-2 text-sm font-semibold">
+                <button className="border-b-2 border-[#4f46e5] py-4 text-[#312e81]">For You</button>
+                <button className="py-4 text-slate-500">Following</button>
+              </div>
+            </div>
+
+            <div className="border-b border-slate-100 px-6 py-4">
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-xl text-slate-700">What’s on your mind right now?</p>
+                <button className="rounded-full bg-[#4f46e5] px-5 py-2 text-sm font-semibold text-white">Post</button>
+              </div>
+              <div className="flex items-center gap-2 text-slate-500">
+                <button className="rounded-full border border-slate-200 p-2"><Image size={16} /></button>
+                <button className="rounded-full border border-slate-200 p-2"><Mic size={16} /></button>
+                <button className="rounded-full border border-slate-200 p-2"><MessageCircle size={16} /></button>
+              </div>
+            </div>
+
+            {[1, 2].map((post) => (
+              <article key={post} className="border-b border-slate-100 px-6 py-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img className="h-10 w-10 rounded-full object-cover" src={post === 1 ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200' : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200'} alt="avatar" />
+                    <div>
+                      <p className="font-semibold text-slate-800">{post === 1 ? 'X_AE_A-13' : 'Amanda D. Gray'}</p>
+                      <p className="text-xs text-slate-500">Product Designer, slothUI</p>
                     </div>
+                  </div>
+                  <button className="text-slate-400"><MoreHorizontal size={16} /></button>
+                </div>
+                <p className="mb-3 text-sm text-slate-700">Habitant morbi tristique senectus et netus et. Suspendisse sed nisi lacus sed viverra. #amazing #great #lifetime #uiux #machinelearning</p>
+                {post === 1 && (
+                  <img
+                    className="mb-3 h-64 w-full rounded-2xl object-cover"
+                    src="https://images.unsplash.com/photo-1469460340997-2f854421e72f?w=1200"
+                    alt="post"
+                  />
+                )}
+                <div className="flex gap-6 text-sm text-slate-500">
+                  <span>12 Likes</span>
+                  <span>25 Comments</span>
+                  <span>187 Share</span>
+                </div>
+              </article>
+            ))}
+          </main>
+
+          <aside className="rounded-3xl border border-[#dbe1ff] bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center gap-3">
+              <img className="h-14 w-14 rounded-full object-cover" src={user?.avatar || 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200'} alt="profile" />
+              <div>
+                <p className="font-semibold text-slate-800">{user?.name || 'X_AE_0'}</p>
+                <p className="text-sm text-slate-500">{user?.email || '@x_ae_0'}</p>
+                <p className="text-xs text-slate-500">{user?.campus || 'Osaka, Japan'}</p>
+              </div>
+            </div>
+            <div className="mb-5 grid grid-cols-3 text-center">
+              <div><p className="text-2xl font-bold text-slate-800">548</p><p className="text-xs text-slate-500">Posts</p></div>
+              <div><p className="text-2xl font-bold text-slate-800">12k</p><p className="text-xs text-slate-500">Followers</p></div>
+              <div><p className="text-2xl font-bold text-slate-800">3.2k</p><p className="text-xs text-slate-500">Following</p></div>
+            </div>
+            <div className="mb-5">
+              <h4 className="mb-2 font-semibold text-slate-800">About Me</h4>
+              <p className="text-sm text-slate-600">Hi there! I’m {user?.name || 'X_AE_0'}. Fitness aficionado and builder who loves clean interfaces and helpful communities.</p>
+            </div>
+            <div className="mb-5">
+              <h4 className="mb-2 font-semibold text-slate-800">My Story Highlights</h4>
+              <div className="flex gap-3">
+                {['France', 'Japan', 'Canada'].map((item) => (
+                  <div key={item} className="text-center text-xs text-slate-600">
+                    <img className="mb-1 h-12 w-12 rounded-full object-cover" src={`https://picsum.photos/seed/${item}/100`} alt={item} />
+                    {item}
                   </div>
                 ))}
-                {freedomPosts.length === 0 && (
-                  <div className="text-sm text-gray-500">No posts yet. Be the first to share.</div>
-                )}
-              </div>
-              <div className="mt-6 flex justify-end">
-                <button onClick={() => setView('confession')} className="px-4 py-2 rounded-lg bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors">
-                  Open Confession
-                </button>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 gap-6">
-              <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-bold flex items-center gap-2"><Users size={18} className="text-amber-500" /> Community Groups</h4>
-                  <button
-                    onClick={() => setDashboardCreateOpen(v => !v)}
-                    className="text-xs px-3 py-1 rounded-full bg-white/10 text-gray-300 hover:bg-white/20"
-                  >
-                    {dashboardCreateOpen ? 'Close' : 'Create'}
-                  </button>
-                </div>
-                {dashboardCreateOpen && (
-                  <div className="mb-4 space-y-2">
-                    <input
-                      value={newGroup.name}
-                      onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
-                      placeholder="Group name"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500/50"
-                    />
-                    <select
-                      value={newGroup.campus}
-                      onChange={(e) => setNewGroup({ ...newGroup, campus: e.target.value })}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500/50"
-                    >
-                      <option value="" className="bg-[#0a0502]">Select campus</option>
-                      {CAMPUSES.map(c => (
-                        <option key={c.slug} value={c.name} className="bg-[#0a0502]">{c.name}</option>
-                      ))}
-                    </select>
-                    <textarea
-                      value={newGroup.description}
-                      onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
-                      placeholder="Description (optional)"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500/50"
-                      rows={2}
-                    />
-                    <div className="flex items-center gap-3">
-                      <label className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-400 hover:bg-white/10 cursor-pointer w-fit">
-                        Upload logo
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) { setNewGroup({ ...newGroup, logoPreview: '' }); return; }
-                            const reader = new FileReader();
-                            reader.onload = () => setNewGroup({ ...newGroup, logoPreview: reader.result as string });
-                            reader.readAsDataURL(file);
-                          }}
-                          className="hidden"
-                        />
-                      </label>
-                      {newGroup.logoPreview ? <span className="text-xs text-amber-400">Logo attached</span> : <span className="text-xs text-gray-500">Optional</span>}
-                    </div>
-                    <div className="pt-1">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!newGroup.name || !newGroup.campus || dashboardCreating) return;
-                          setDashboardCreating(true);
-                          try {
-                            let logoUrl: string | undefined;
-                            if (newGroup.logoPreview) {
-                              const up = await fetch('/api/upload', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ dataUrl: newGroup.logoPreview })
-                              }).then(safeJson);
-                              if (up.success) logoUrl = up.url;
-                            }
-                            const res = await fetch('/api/groups', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ name: newGroup.name, description: newGroup.description, campus: newGroup.campus, logoUrl })
-                            }).then(safeJson);
-                            if (res.success) {
-                              setGroups((prev) => [res.group, ...prev]);
-                              setNewGroup({ name: '', description: '', campus: '', logoPreview: '' });
-                              setDashboardCreateOpen(false);
-                            }
-                          } finally {
-                            setDashboardCreating(false);
-                          }
-                        }}
-                        disabled={!newGroup.name || !newGroup.campus || dashboardCreating}
-                        aria-busy={dashboardCreating}
-                        className="px-4 py-2 rounded-lg bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors disabled:opacity-50"
-                      >
-                        {dashboardCreating ? 'Creating…' : 'Create Group'}
-                      </button>
-                    </div>
-                    <div className="h-px w-full bg-white/10" />
-                  </div>
-                )}
-                <div className="space-y-3">
-                  {loadingGroups && <div className="text-sm text-gray-500">Loading groups...</div>}
-                  {!loadingGroups && groups.length === 0 && <div className="text-sm text-gray-500">No groups found.</div>}
-                  {!loadingGroups && groups.map(group => (
-                    <div key={group.id} className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5">
-                      <div>
-                        <span className="text-sm">{group.name}</span>
-                        <span className="block text-[10px] text-gray-500">{group.campus}</span>
-                      </div>
-                      <button 
-                        onClick={() => {
-                          setActiveRoom(group.name.toLowerCase().replace(/\s+/g, '-'));
-                          setView('messenger');
-                        }}
-                        className="text-amber-500 hover:text-amber-400 text-xs"
-                      >
-                        Join
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+            <button onClick={handleLogout} className="w-full rounded-xl bg-slate-900 py-2 text-sm font-semibold text-white">Sign Out</button>
+          </aside>
         </div>
       </div>
-    </div>
     );
   };
 
