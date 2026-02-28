@@ -3063,13 +3063,12 @@ export default function App() {
           data={posts}
           overscan={5}
           endReached={() => loadMorePosts(totalLoaded)}
-          isLoading={isLoading}
           itemContent={itemContent}
           className="flex-1"
           style={{ height: 'calc(100vh - 400px)' }}
           components={{
             Footer: () =>
-              hasMore && posts.length > 0 ? (
+              isLoading && hasMore && posts.length > 0 ? (
                 <div className="flex justify-center py-4">
                   <div className="animate-spin">
                     <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full" />
