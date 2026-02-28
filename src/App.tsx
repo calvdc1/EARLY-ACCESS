@@ -2633,19 +2633,21 @@ export default function App() {
             </div>
 
             {/* Right: Timeline */}
-            <div className="xl:col-span-8 space-y-8">
-              <div className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl">
-                <div className="flex items-center justify-between mb-8">
+            <div className="xl:col-span-8 flex flex-col h-screen">
+              <div className="p-8 rounded-t-[2rem] bg-white/5 border border-white/10 border-b-0 backdrop-blur-md shadow-2xl flex-shrink-0">
+                <div className="flex items-center justify-between">
                   <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-3">
-                    <MessageSquare className="text-amber-500" size={24} /> 
-                    Campus <span className="text-amber-500">Timeline</span>
+                    <MessageSquare className="text-amber-500" size={24} />
+                    Campus <span className="text-amber-500">Feed</span>
                   </h3>
                   <div className="flex gap-2">
                     <button className="p-2 rounded-lg bg-white/5 text-gray-500 hover:text-white transition-colors"><Search size={18} /></button>
                     <button className="p-2 rounded-lg bg-white/5 text-gray-500 hover:text-white transition-colors"><Bell size={18} /></button>
                   </div>
                 </div>
-                <CampusTimeline campus={activeCampus} />
+              </div>
+              <div className="flex-1 overflow-hidden p-8 pt-4 rounded-b-[2rem] bg-white/5 border border-white/10 border-t-0 backdrop-blur-md shadow-2xl">
+                <SocialFeed />
               </div>
             </div>
           </div>
@@ -2748,6 +2750,342 @@ export default function App() {
             </div>
           )}
         </AnimatePresence>
+      </div>
+    );
+  };
+
+  // ---- Social Feed Components ----
+
+  interface Post {
+    id: number;
+    user_id: number;
+    content: string;
+    image_url: string | null;
+    likes_count: number;
+    comments_count: number;
+    created_at: string;
+    author_name: string;
+    author_avatar: string;
+    user_liked: boolean;
+  }
+
+  const CreatePostForm = ({ onPostCreated }: { onPostCreated: () => void }) => {
+    const [postContent, setPostContent] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e: FormEvent) => {
+      e.preventDefault();
+      if (!postContent.trim() || !user?.id) return;
+
+      setIsSubmitting(true);
+      try {
+        const response = await fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            content: postContent.trim()
+          })
+        });
+
+        if (response.ok) {
+          setPostContent('');
+          onPostCreated();
+        }
+      } catch (err) {
+        console.error('Failed to create post:', err);
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md mb-6">
+        <div className="flex gap-4">
+          <img
+            src={user?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
+            alt={user?.name}
+            className="w-10 h-10 rounded-full shrink-0 object-cover"
+          />
+          <div className="flex-1">
+            <textarea
+              value={postContent}
+              onChange={(e) => setPostContent(e.target.value)}
+              placeholder="What's on your mind?"
+              className="w-full bg-transparent text-white placeholder-gray-500 resize-none focus:outline-none text-sm"
+              rows={3}
+            />
+            <div className="flex justify-end gap-2 mt-3">
+              <button
+                type="button"
+                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+              >
+                <Image size={16} />
+              </button>
+              <button
+                type="submit"
+                disabled={!postContent.trim() || isSubmitting}
+                className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
+              >
+                {isSubmitting ? 'Posting...' : 'Post'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    );
+  };
+
+  const PostCard = ({ post, onLikeToggle }: { post: Post; onLikeToggle: (postId: number, liked: boolean) => void }) => {
+    const [showComments, setShowComments] = useState(false);
+    const [comments, setComments] = useState<any[]>([]);
+    const [newComment, setNewComment] = useState('');
+    const [isLoadingComments, setIsLoadingComments] = useState(false);
+
+    const handleLike = async () => {
+      try {
+        const endpoint = post.user_liked ? `/api/posts/${post.id}/unlike` : `/api/posts/${post.id}/like`;
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user?.id })
+        });
+
+        if (response.ok) {
+          onLikeToggle(post.id, !post.user_liked);
+        }
+      } catch (err) {
+        console.error('Failed to toggle like:', err);
+      }
+    };
+
+    const loadComments = async () => {
+      if (isLoadingComments) return;
+      setIsLoadingComments(true);
+      try {
+        const response = await fetch(`/api/posts/${post.id}/comments`);
+        if (response.ok) {
+          const data = await response.json();
+          setComments(data.comments);
+          setShowComments(true);
+        }
+      } catch (err) {
+        console.error('Failed to load comments:', err);
+      } finally {
+        setIsLoadingComments(false);
+      }
+    };
+
+    const handleAddComment = async (e: FormEvent) => {
+      e.preventDefault();
+      if (!newComment.trim() || !user?.id) return;
+
+      try {
+        const response = await fetch(`/api/posts/${post.id}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            content: newComment.trim()
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setComments([data.comment, ...comments]);
+          setNewComment('');
+        }
+      } catch (err) {
+        console.error('Failed to add comment:', err);
+      }
+    };
+
+    const postDate = new Date(post.created_at);
+    const timeAgo = Math.floor((Date.now() - postDate.getTime()) / 1000);
+    let timeString = '';
+    if (timeAgo < 60) timeString = 'now';
+    else if (timeAgo < 3600) timeString = `${Math.floor(timeAgo / 60)}m`;
+    else if (timeAgo < 86400) timeString = `${Math.floor(timeAgo / 3600)}h`;
+    else timeString = `${Math.floor(timeAgo / 86400)}d`;
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md hover:border-amber-500/20 transition-colors"
+      >
+        <div className="flex gap-3 mb-4">
+          <img
+            src={post.author_avatar}
+            alt={post.author_name}
+            className="w-10 h-10 rounded-full object-cover shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline gap-2">
+              <span className="font-semibold text-white truncate">{post.author_name}</span>
+              <span className="text-xs text-gray-500">{timeString}</span>
+            </div>
+            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap break-words">{post.content}</p>
+            {post.image_url && (
+              <img
+                src={post.image_url}
+                alt="Post image"
+                className="mt-3 rounded-lg max-h-96 w-full object-cover"
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="flex gap-4 pt-3 border-t border-white/5">
+          <button
+            onClick={handleLike}
+            className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
+              post.user_liked
+                ? 'text-amber-500'
+                : 'text-gray-500 hover:text-amber-500'
+            }`}
+          >
+            <Heart size={14} fill={post.user_liked ? 'currentColor' : 'none'} />
+            {post.likes_count}
+          </button>
+          <button
+            onClick={loadComments}
+            className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-white transition-colors"
+          >
+            <MessageSquare size={14} />
+            {post.comments_count}
+          </button>
+        </div>
+
+        {showComments && (
+          <div className="mt-4 space-y-3 border-t border-white/5 pt-3">
+            <form onSubmit={handleAddComment} className="flex gap-2">
+              <img
+                src={user?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
+                alt={user?.name}
+                className="w-8 h-8 rounded-full shrink-0 object-cover"
+              />
+              <div className="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Write a comment..."
+                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/30"
+                />
+                <button
+                  type="submit"
+                  disabled={!newComment.trim()}
+                  className="p-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white transition-colors"
+                >
+                  <Send size={12} />
+                </button>
+              </div>
+            </form>
+
+            <div className="space-y-2">
+              {comments.map((comment) => (
+                <div key={comment.id} className="flex gap-2 text-xs">
+                  <img
+                    src={comment.author_avatar}
+                    alt={comment.author_name}
+                    className="w-6 h-6 rounded-full object-cover shrink-0"
+                  />
+                  <div className="flex-1 min-w-0 bg-white/5 rounded-lg p-2">
+                    <span className="font-medium text-white">{comment.author_name}</span>
+                    <p className="text-gray-300 mt-0.5 break-words">{comment.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </motion.div>
+    );
+  };
+
+  const SocialFeed = () => {
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [totalLoaded, setTotalLoaded] = useState(0);
+
+    const loadMorePosts = async (offset: number) => {
+      if (isLoading || !hasMore) return;
+      setIsLoading(true);
+
+      try {
+        const response = await fetch(`/api/posts?limit=10&offset=${offset}&userId=${user?.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setPosts((prev) => [...prev, ...data.posts]);
+          setTotalLoaded(offset + data.posts.length);
+          if (offset + data.posts.length >= data.total) {
+            setHasMore(false);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load posts:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const handlePostCreated = async () => {
+      setPosts([]);
+      setTotalLoaded(0);
+      setHasMore(true);
+      await loadMorePosts(0);
+    };
+
+    const handleLikeToggle = (postId: number, liked: boolean) => {
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? {
+                ...p,
+                user_liked: liked,
+                likes_count: liked ? p.likes_count + 1 : p.likes_count - 1
+              }
+            : p
+        )
+      );
+    };
+
+    const itemContent = (index: number, post: Post) => (
+      <PostCard post={post} onLikeToggle={handleLikeToggle} />
+    );
+
+    return (
+      <div className="flex flex-col h-full">
+        <CreatePostForm onPostCreated={handlePostCreated} />
+        <Virtuoso
+          data={posts}
+          overscan={5}
+          endReached={() => loadMorePosts(totalLoaded)}
+          isLoading={isLoading}
+          itemContent={itemContent}
+          className="flex-1"
+          style={{ height: 'calc(100vh - 400px)' }}
+          components={{
+            Footer: () =>
+              hasMore && posts.length > 0 ? (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin">
+                    <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full" />
+                  </div>
+                </div>
+              ) : null
+          }}
+        />
+        {!isLoading && posts.length === 0 && (
+          <div className="flex-1 flex items-center justify-center text-center py-12">
+            <div>
+              <MessageSquare size={32} className="text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-400">No posts yet. Be the first to share!</p>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -5113,9 +5451,9 @@ export default function App() {
                   >
                     <MessageCircle size={20} className="group-hover:text-amber-500 transition-colors" />
                     <span className="font-medium">Messages</span>
-                    {Object.values(unreadCounts).some(count => count > 0) && (
+                    {Object.values(unreadCounts).some(count => (count as number) > 0) && (
                       <span className="ml-auto px-2 py-1 rounded-full bg-rose-500 text-white text-xs font-bold">
-                        {Object.values(unreadCounts).reduce((a, b) => a + b, 0)}
+                        {Object.values(unreadCounts).reduce((a, b) => (a as number) + (b as number), 0)}
                       </span>
                     )}
                   </button>
