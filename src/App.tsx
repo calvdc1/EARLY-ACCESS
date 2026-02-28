@@ -616,10 +616,7 @@ const CampusLogo = ({ slug, className = "w-full h-full" }: { slug: string, class
 };
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return localStorage.getItem('onemsu_splash_seen') !== 'true';
-  });
+  const [showSplash, setShowSplash] = useState(true);
   const [view, setView] = useState<'home' | 'explorer' | 'about' | 'dashboard' | 'messenger' | 'newsfeed' | 'profile' | 'confession' | 'feedbacks' | 'lostfound'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('onemsu_view');
@@ -633,9 +630,6 @@ export default function App() {
 
   useEffect(() => {
     if (!showSplash) return;
-
-    // Mark splash as seen immediately so refresh won't replay it.
-    localStorage.setItem('onemsu_splash_seen', 'true');
 
     const timer = setTimeout(() => {
       setShowSplash(false);
@@ -783,22 +777,6 @@ export default function App() {
       media_type, 
       timestamp 
     } as any;
-  };
-
-
-  const mergeMessage = (nextMessage: any) => {
-    setMessages((prev) => {
-      const nextId = String(nextMessage.id);
-      const nextClientId = nextMessage.clientId ? String(nextMessage.clientId) : null;
-
-      const deduped = prev.filter((m: any) => {
-        if (String(m.id) === nextId) return false;
-        if (nextClientId && m.clientId && String(m.clientId) === nextClientId) return false;
-        return true;
-      });
-
-      return [...deduped, nextMessage];
-    });
   };
 
   const START_INDEX = 10000;
@@ -1025,7 +1003,10 @@ export default function App() {
           const isCurrentRoom = (msg.roomId === activeRoom);
 
           if (isCurrentRoom && isInCorrectView) {
-            mergeMessage(msg);
+            setMessages(prev => {
+              if (prev.some(m => String((m as any).id) === msgId)) return prev;
+              return [...prev, msg];
+            });
           } else {
             setUnreadCounts(prev => ({
               ...prev,
@@ -1206,7 +1187,7 @@ export default function App() {
         timestamp: new Date().toISOString()
       };
       
-      mergeMessage(userMsg as any);
+      setMessages(prev => [...prev, userMsg as any]);
       setTimeout(() => {
         virtuosoRef.current?.scrollToIndex({ index: 'last', align: 'end', behavior: 'smooth' });
       }, 50);
@@ -1277,7 +1258,7 @@ export default function App() {
           sender_email: 'jarvis@onemsu.edu.ph'
         };
         
-        mergeMessage(aiMsg as any);
+        setMessages(prev => [...prev, aiMsg as any]);
         
         // Scroll to bottom
         setTimeout(() => {
@@ -1287,7 +1268,7 @@ export default function App() {
       } catch (error) {
         console.error("AI Error:", error);
         setTypingUsers(prev => ({ ...prev, [activeRoom]: [] }));
-        mergeMessage({
+        setMessages(prev => [...prev, {
           id: `ai-err-${Date.now()}`,
           sender_id: 0,
           sender_name: 'ONEMSU AI',
@@ -1295,7 +1276,7 @@ export default function App() {
           roomId: activeRoom,
           room_id: activeRoom,
           timestamp: new Date().toISOString()
-        } as any);
+        } as any]);
       } finally {
         setIsSending(false);
       }
@@ -1325,7 +1306,7 @@ export default function App() {
     };
 
     // Show instantly
-    mergeMessage(optimistic);
+    setMessages(prev => [...prev, optimistic]);
 
     try {
         // Send to server
@@ -1669,24 +1650,6 @@ export default function App() {
     }).then(r => r.json());
     if (res.success) {
       setMessages([]);
-      setSettingsOpen(false);
-    }
-  };
-
-
-  const clearAllChatsFromDatabase = async () => {
-    const ok = window.confirm('This will permanently delete all chat messages for everyone. Continue?');
-    if (!ok) return;
-
-    const res = await fetch('/api/messages/clear-all', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    }).then(r => r.json());
-
-    if (res.success) {
-      setMessages([]);
-      setUnreadCounts({});
-      setToast(null);
       setSettingsOpen(false);
     }
   };
@@ -3937,7 +3900,7 @@ export default function App() {
     }, 2000);
   };
 
-  const MessengerPanel = () => {
+  const renderMessenger = () => {
     // Determine the other participant in a DM
     let otherParticipantId: number | null = null;
     if (activeRoom.startsWith('dm-')) {
@@ -4238,9 +4201,6 @@ export default function App() {
                   </button>
                   <button onClick={clearChat} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 text-rose-400">
                     Clear for me
-                  </button>
-                  <button onClick={clearAllChatsFromDatabase} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 text-red-500 font-semibold">
-                    Clear all chats (database)
                   </button>
                 </div>
               )}
@@ -4799,7 +4759,7 @@ export default function App() {
             exit={{ opacity: 0, scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            {MessengerPanel()}
+            {renderMessenger()}
           </motion.div>
         )}
       </AnimatePresence>
