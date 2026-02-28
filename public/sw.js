@@ -1,4 +1,4 @@
-const CACHE_NAME = 'onemsu-static-v2';
+const CACHE_NAME = 'onemsu-static-v3';
 const STATIC_ASSETS = [
   '/manifest.json'
 ];
@@ -34,19 +34,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for same-origin static assets with network fallback/update.
+  // Network-first for same-origin assets to minimize stale UI after deployments.
   if (url.origin === self.location.origin) {
     event.respondWith(
-      caches.match(request).then((cached) => {
-        if (cached) return cached;
-        return fetch(request).then((response) => {
+      fetch(request)
+        .then((response) => {
           if (response && response.status === 200 && request.url.startsWith(self.location.origin)) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
           return response;
-        });
-      })
+        })
+        .catch(() => caches.match(request))
     );
   }
 });
