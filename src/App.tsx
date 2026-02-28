@@ -3504,7 +3504,7 @@ export default function App() {
                       <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                         <span className="text-gray-600">{post.campus}</span>
                         <span className="text-gray-700">•</span>
-                        <span className="text-gray-600">{new Date(post.timestamp).toLocaleDateString()} {new Date(post.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="text-gray-600">{new Date(post.timestamp).toLocaleString([], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </div>
                   </div>
@@ -3524,8 +3524,8 @@ export default function App() {
                 <div className="border-t border-white/10 px-4 py-3">
                   <div className="flex items-center justify-between mb-3 text-xs text-gray-500 pb-3 border-b border-white/5">
                     <div className="flex gap-6">
-                      <span className="hover:text-amber-400 cursor-pointer transition-colors">{post.likes} {post.likes === 1 ? 'like' : 'likes'}</span>
-                      <span className="hover:text-amber-400 cursor-pointer transition-colors">{post.comments} {post.comments === 1 ? 'comment' : 'comments'}</span>
+                      <span className="hover:text-amber-400 cursor-pointer transition-colors">{post.likes || 0} {(post.likes ?? 0) === 1 ? 'like' : 'likes'}</span>
+                      <span className="hover:text-amber-400 cursor-pointer transition-colors">{post.comments || 0} {(post.comments ?? 0) === 1 ? 'comment' : 'comments'}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
