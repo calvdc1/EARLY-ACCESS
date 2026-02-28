@@ -115,6 +115,38 @@ try {
     location TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS posts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    image_url TEXT,
+    likes_count INTEGER DEFAULT 0,
+    comments_count INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS post_likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(post_id, user_id),
+    FOREIGN KEY (post_id) REFERENCES posts(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS post_comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
 `);
 } catch (err: any) {
   if (err && err.code === "SQLITE_NOTADB") {
@@ -201,6 +233,38 @@ try {
         location TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        content TEXT NOT NULL,
+        image_url TEXT,
+        likes_count INTEGER DEFAULT 0,
+        comments_count INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS post_likes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(post_id, user_id),
+        FOREIGN KEY (post_id) REFERENCES posts(id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS post_comments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        content TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (post_id) REFERENCES posts(id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
     `);
   } else {
     throw err;
@@ -223,6 +287,10 @@ try { db.exec(`CREATE INDEX IF NOT EXISTS idx_deleted_messages_user_message ON d
 try { db.exec(`CREATE INDEX IF NOT EXISTS idx_message_reactions_message ON message_reactions(message_id)`); } catch {}
 try { db.exec(`CREATE INDEX IF NOT EXISTS idx_presence_last_seen ON presence(last_seen)`); } catch {}
 try { db.exec(`CREATE INDEX IF NOT EXISTS idx_group_members_user_group ON group_members(user_id, group_id)`); } catch {}
+try { db.exec(`CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC)`); } catch {}
+try { db.exec(`CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id)`); } catch {}
+try { db.exec(`CREATE INDEX IF NOT EXISTS idx_post_likes_post_user ON post_likes(post_id, user_id)`); } catch {}
+try { db.exec(`CREATE INDEX IF NOT EXISTS idx_post_comments_post ON post_comments(post_id)`); } catch {}
 const groupsCount = db.prepare("SELECT COUNT(*) AS c FROM groups").get() as { c: number };
 if (!groupsCount.c) {
   const stmt = db.prepare("INSERT INTO groups (name, description, campus) VALUES (?, ?, ?)");
@@ -231,6 +299,42 @@ if (!groupsCount.c) {
   stmt.run("Gensan Arts Guild", "Visual and performing arts group", "MSU Gensan");
   stmt.run("Naawan Marine Society", "Marine sciences student org", "MSU Naawan");
   stmt.run("Tawi-Tawi Oceanic Research Circle", "Fisheries and oceanography circle", "MSU Tawi-Tawi");
+}
+
+// Initialize sample posts if none exist
+const postsCount = db.prepare("SELECT COUNT(*) AS c FROM posts").get() as { c: number };
+if (!postsCount.c) {
+  // Create sample users for posts
+  const userStmt = db.prepare("INSERT OR IGNORE INTO users (id, name, email, password, campus, avatar) VALUES (?, ?, ?, ?, ?, ?)");
+  const sampleUsers = [
+    [1, "Maria Santos", "maria@msu.edu", "password", "MSU Main", "https://api.dicebear.com/7.x/avataaars/svg?seed=Maria"],
+    [2, "Juan Dela Cruz", "juan@msu.edu", "password", "MSU IIT", "https://api.dicebear.com/7.x/avataaars/svg?seed=Juan"],
+    [3, "Ana Garcia", "ana@msu.edu", "password", "MSU Gensan", "https://api.dicebear.com/7.x/avataaars/svg?seed=Ana"],
+    [4, "Pedro Reyes", "pedro@msu.edu", "password", "MSU Main", "https://api.dicebear.com/7.x/avataaars/svg?seed=Pedro"],
+    [5, "Sofia Lopez", "sofia@msu.edu", "password", "MSU IIT", "https://api.dicebear.com/7.x/avataaars/svg?seed=Sofia"]
+  ];
+
+  sampleUsers.forEach(user => {
+    userStmt.run(...user);
+  });
+
+  // Create sample posts
+  const postStmt = db.prepare("INSERT INTO posts (user_id, content, likes_count, comments_count, created_at) VALUES (?, ?, ?, ?, ?)");
+  const now = new Date();
+  const samplePosts = [
+    [1, "Just finished my thesis on sustainable development in Mindanao. Excited to share my findings with the community! 🎓", 45, 8, new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()],
+    [2, "The new IT lab at MSU IIT is amazing! Perfect for our capstone project. Thanks to the administration! 🖥️", 32, 5, new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString()],
+    [3, "Campus life update: organizing a sports event for the SOCCSKSARGEN region. Who's interested in joining? ⚽", 28, 12, new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString()],
+    [4, "Proud to announce our debate team won the regional championship! 🏆 Thanks to everyone who supported us!", 67, 15, new Date(now.getTime() - 8 * 60 * 60 * 1000).toISOString()],
+    [5, "Research update: Our AI project for agricultural planning is now in the testing phase. Exciting times ahead! 🤖", 41, 9, new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString()],
+    [1, "Reminder: University orientation for incoming freshmen starts next week. Welcome to the MSU family! 👋", 19, 3, new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()],
+    [2, "Just published my paper on cloud computing. Check it out and let me know your thoughts! Link in bio 📚", 35, 7, new Date(now.getTime() - 36 * 60 * 60 * 1000).toISOString()],
+    [3, "Amazing experience at the environmental summit. Let's work together to preserve our beautiful Mindanao! 🌿", 52, 11, new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString()],
+  ];
+
+  samplePosts.forEach(post => {
+    postStmt.run(...post);
+  });
 }
 async function startServer() {
   const app = express();
@@ -392,6 +496,192 @@ async function startServer() {
     const info = db.prepare('DELETE FROM schedules WHERE id = ? AND user_id = ?').run(id, userId);
     res.json({ success: info.changes > 0 });
   });
+
+  // Posts Feed API
+  app.get('/api/posts', (req, res) => {
+    const limit = Math.min(Number(req.query.limit) || 20, 100);
+    const offset = Number(req.query.offset) || 0;
+    const userId = req.query.userId ? Number(req.query.userId) : null;
+
+    // Get posts with user details and engagement counts
+    const posts = db.prepare(`
+      SELECT
+        p.id,
+        p.user_id,
+        p.content,
+        p.image_url,
+        p.likes_count,
+        p.comments_count,
+        p.created_at,
+        u.name as author_name,
+        u.avatar as author_avatar,
+        COALESCE((SELECT 1 FROM post_likes WHERE post_id = p.id AND user_id = ?), 0) as user_liked
+      FROM posts p
+      JOIN users u ON p.user_id = u.id
+      ORDER BY p.created_at DESC
+      LIMIT ? OFFSET ?
+    `).all(userId, limit, offset);
+
+    const total = db.prepare('SELECT COUNT(*) as count FROM posts').get() as { count: number };
+
+    res.json({
+      success: true,
+      posts: posts.map(p => ({
+        ...p,
+        user_liked: p.user_liked === 1
+      })),
+      total: total.count,
+      offset,
+      limit
+    });
+  });
+
+  app.post('/api/posts', (req, res) => {
+    const { userId, content, imageUrl } = req.body;
+    if (!userId || !content) {
+      return res.status(400).json({ success: false, message: 'Missing userId or content' });
+    }
+
+    try {
+      const info = db.prepare(`
+        INSERT INTO posts (user_id, content, image_url)
+        VALUES (?, ?, ?)
+      `).run(userId, content, imageUrl || null);
+
+      const post = db.prepare(`
+        SELECT
+          p.id,
+          p.user_id,
+          p.content,
+          p.image_url,
+          p.likes_count,
+          p.comments_count,
+          p.created_at,
+          u.name as author_name,
+          u.avatar as author_avatar,
+          0 as user_liked
+        FROM posts p
+        JOIN users u ON p.user_id = u.id
+        WHERE p.id = ?
+      `).get(info.lastInsertRowid);
+
+      res.json({ success: true, post });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Failed to create post' });
+    }
+  });
+
+  app.post('/api/posts/:postId/like', (req, res) => {
+    const postId = Number(req.params.postId);
+    const userId = Number(req.body.userId);
+
+    if (!postId || !userId) {
+      return res.status(400).json({ success: false, message: 'Missing postId or userId' });
+    }
+
+    try {
+      // Insert like
+      db.prepare('INSERT OR IGNORE INTO post_likes (post_id, user_id) VALUES (?, ?)').run(postId, userId);
+
+      // Update likes count
+      db.prepare('UPDATE posts SET likes_count = (SELECT COUNT(*) FROM post_likes WHERE post_id = ?) WHERE id = ?').run(postId, postId);
+
+      const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(postId);
+      res.json({ success: true, post });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Failed to like post' });
+    }
+  });
+
+  app.post('/api/posts/:postId/unlike', (req, res) => {
+    const postId = Number(req.params.postId);
+    const userId = Number(req.body.userId);
+
+    if (!postId || !userId) {
+      return res.status(400).json({ success: false, message: 'Missing postId or userId' });
+    }
+
+    try {
+      // Delete like
+      db.prepare('DELETE FROM post_likes WHERE post_id = ? AND user_id = ?').run(postId, userId);
+
+      // Update likes count
+      db.prepare('UPDATE posts SET likes_count = (SELECT COUNT(*) FROM post_likes WHERE post_id = ?) WHERE id = ?').run(postId, postId);
+
+      const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(postId);
+      res.json({ success: true, post });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Failed to unlike post' });
+    }
+  });
+
+  app.get('/api/posts/:postId/comments', (req, res) => {
+    const postId = Number(req.params.postId);
+    const limit = Math.min(Number(req.query.limit) || 20, 100);
+    const offset = Number(req.query.offset) || 0;
+
+    const comments = db.prepare(`
+      SELECT
+        c.id,
+        c.user_id,
+        c.content,
+        c.created_at,
+        u.name as author_name,
+        u.avatar as author_avatar
+      FROM post_comments c
+      JOIN users u ON c.user_id = u.id
+      WHERE c.post_id = ?
+      ORDER BY c.created_at DESC
+      LIMIT ? OFFSET ?
+    `).all(postId, limit, offset);
+
+    const total = db.prepare('SELECT COUNT(*) as count FROM post_comments WHERE post_id = ?').get(postId) as { count: number };
+
+    res.json({
+      success: true,
+      comments,
+      total: total.count,
+      offset,
+      limit
+    });
+  });
+
+  app.post('/api/posts/:postId/comments', (req, res) => {
+    const postId = Number(req.params.postId);
+    const { userId, content } = req.body;
+
+    if (!postId || !userId || !content) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    try {
+      const info = db.prepare(`
+        INSERT INTO post_comments (post_id, user_id, content)
+        VALUES (?, ?, ?)
+      `).run(postId, userId, content);
+
+      // Update comments count
+      db.prepare('UPDATE posts SET comments_count = (SELECT COUNT(*) FROM post_comments WHERE post_id = ?) WHERE id = ?').run(postId, postId);
+
+      const comment = db.prepare(`
+        SELECT
+          c.id,
+          c.user_id,
+          c.content,
+          c.created_at,
+          u.name as author_name,
+          u.avatar as author_avatar
+        FROM post_comments c
+        JOIN users u ON c.user_id = u.id
+        WHERE c.id = ?
+      `).get(info.lastInsertRowid);
+
+      res.json({ success: true, comment });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Failed to create comment' });
+    }
+  });
+
   app.post("/api/freedomwall/:id/react", (req, res) => {
     const id = Number(req.params.id);
     const { type } = req.body;
