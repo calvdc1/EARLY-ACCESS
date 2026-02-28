@@ -3364,12 +3364,15 @@ export default function App() {
   const renderNewsfeed = () => (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(61,43,22,0.9),#090704_55%)] text-gray-200">
       {/* Header */}
-      <div className="border-b border-white/10 bg-black/40 backdrop-blur-sm sticky top-0 z-40">
-        <div className="px-4 md:px-8 py-4">
+      <div className="border-b border-white/10 bg-gradient-to-b from-black/50 to-black/20 backdrop-blur-md sticky top-0 z-40">
+        <div className="px-4 md:px-8 py-5">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white">Newsfeed</h1>
-            <button onClick={() => setView('dashboard')} className="text-gray-400 hover:text-white transition-colors">
-              <X size={20} />
+            <div>
+              <h1 className="text-3xl font-bold text-white">Newsfeed</h1>
+              <p className="text-xs text-gray-500 mt-1">MSU Community Updates</p>
+            </div>
+            <button onClick={() => setView('dashboard')} className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+              <X size={24} />
             </button>
           </div>
         </div>
@@ -3377,15 +3380,15 @@ export default function App() {
 
       {/* Main Content */}
       <div className="p-4 md:p-8">
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-2xl mx-auto space-y-5">
           {/* Post Composer */}
-          <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-sm p-6">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold shrink-0">
+          <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-md shadow-lg p-6">
+            <div className="flex items-center gap-4 mb-5">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-bold shrink-0 shadow-md">
                 {user?.name?.[0] || 'U'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-white text-sm">{user?.name || 'Anonymous'}</p>
+                <p className="font-semibold text-white">{user?.name || 'Anonymous'}</p>
                 <p className="text-xs text-gray-500">{user?.campus || 'No Campus'}</p>
               </div>
             </div>
@@ -3395,25 +3398,25 @@ export default function App() {
                 value={newsfeedText}
                 onChange={(e) => setNewsfeedText(e.target.value)}
                 placeholder="What's on your mind? Share something with the MSU community..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-colors resize-none min-h-[120px]"
+                className="w-full bg-white/8 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 transition-all resize-none min-h-[100px]"
               />
 
               {newsfeedImagePreview && (
-                <div className="relative rounded-lg overflow-hidden border border-white/10">
+                <div className="relative rounded-xl overflow-hidden border border-white/10 shadow-md">
                   <img src={newsfeedImagePreview} alt="Preview" className="w-full h-auto max-h-64 object-cover" />
                   <button
                     onClick={() => setNewsfeedImagePreview(null)}
-                    className="absolute top-2 right-2 p-2 rounded-lg bg-black/60 hover:bg-black/80 transition-colors"
+                    className="absolute top-3 right-3 p-2 rounded-full bg-black/70 hover:bg-black/90 transition-colors"
                   >
-                    <X size={16} />
+                    <X size={18} />
                   </button>
                 </div>
               )}
 
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors text-sm">
-                  <Image size={16} />
-                  Add Image
+              <div className="flex items-center justify-between gap-3">
+                <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/8 border border-white/15 text-gray-400 hover:text-white hover:bg-white/12 cursor-pointer transition-all text-sm font-medium">
+                  <Image size={18} />
+                  Photo
                   <input
                     type="file"
                     accept="image/*"
@@ -3470,7 +3473,7 @@ export default function App() {
                     }
                   }}
                   disabled={!user || !newsfeedText.trim()}
-                  className="px-6 py-2 rounded-lg bg-amber-500 text-black font-bold text-sm hover:bg-amber-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-8 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold text-sm hover:from-amber-400 hover:to-amber-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                 >
                   Post
                 </button>
@@ -3479,11 +3482,11 @@ export default function App() {
           </div>
 
           {/* Posts Feed */}
-          <div className="space-y-4">
+          <div className="space-y-5">
             {newsfeedPosts.length === 0 && (
-              <div className="text-center py-12 rounded-2xl border border-white/10 bg-black/20">
-                <MessageSquare className="mx-auto mb-4 text-gray-600" size={40} />
-                <p className="text-gray-500 text-sm">No posts yet. Be the first to share!</p>
+              <div className="text-center py-16 rounded-2xl border border-white/10 bg-black/20">
+                <MessageSquare className="mx-auto mb-4 text-gray-600" size={48} />
+                <p className="text-gray-500 text-base font-medium">No posts yet. Be the first to share!</p>
               </div>
             )}
 
@@ -3492,12 +3495,12 @@ export default function App() {
                 key={post.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-sm p-6 hover:border-white/20 transition-all"
+                className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-md shadow-lg hover:shadow-xl hover:border-white/15 transition-all"
               >
                 {/* Post Header */}
-                <div className="flex items-start justify-between mb-4">
+                <div className="p-4 flex items-start justify-between">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold shrink-0 overflow-hidden">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500/30 to-amber-600/20 flex items-center justify-center text-amber-400 font-bold shrink-0 overflow-hidden shadow-md">
                       {post.user_avatar ? (
                         <img src={post.user_avatar} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -3505,36 +3508,40 @@ export default function App() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-white text-sm">{post.user_name}</p>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span>{post.campus}</span>
-                        <span>•</span>
-                        <span>{new Date(post.timestamp).toLocaleDateString()} {new Date(post.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <p className="font-semibold text-white leading-tight">{post.user_name}</p>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                        <span className="text-gray-600">{post.campus}</span>
+                        <span className="text-gray-700">•</span>
+                        <span className="text-gray-600">{new Date(post.timestamp).toLocaleDateString()} {new Date(post.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Post Content */}
-                <p className="text-sm text-gray-200 leading-relaxed mb-4">{post.content}</p>
+                <div className="px-4 pb-4">
+                  <p className="text-sm text-gray-200 leading-relaxed">{post.content}</p>
+                </div>
 
                 {/* Post Image */}
                 {post.image_url && (
-                  <img src={post.image_url} alt="" className="w-full rounded-lg mb-4 max-h-96 object-cover border border-white/10" />
+                  <img src={post.image_url} alt="" className="w-full max-h-96 object-cover border-y border-white/10" />
                 )}
 
                 {/* Post Stats & Actions */}
-                <div className="border-t border-white/10 pt-3 flex items-center justify-between text-xs text-gray-500">
-                  <div className="flex gap-4">
-                    <span>{post.likes} likes</span>
-                    <span>{post.comments} comments</span>
+                <div className="border-t border-white/10 px-4 py-3">
+                  <div className="flex items-center justify-between mb-3 text-xs text-gray-500 pb-3 border-b border-white/5">
+                    <div className="flex gap-6">
+                      <span className="hover:text-amber-400 cursor-pointer transition-colors">{post.likes} {post.likes === 1 ? 'like' : 'likes'}</span>
+                      <span className="hover:text-amber-400 cursor-pointer transition-colors">{post.comments} {post.comments === 1 ? 'comment' : 'comments'}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-1 text-gray-400 hover:text-amber-400 transition-colors">
-                      <Heart size={14} /> Like
+                  <div className="flex items-center gap-2">
+                    <button className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-gray-400 hover:text-amber-400 hover:bg-white/5 transition-all text-sm font-medium">
+                      <Heart size={16} /> Like
                     </button>
-                    <button className="flex items-center gap-1 text-gray-400 hover:text-amber-400 transition-colors">
-                      <MessageCircle size={14} /> Comment
+                    <button className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-gray-400 hover:text-amber-400 hover:bg-white/5 transition-all text-sm font-medium">
+                      <MessageCircle size={16} /> Comment
                     </button>
                   </div>
                 </div>
