@@ -3434,31 +3434,36 @@ export default function App() {
                     try {
                       let imageUrl: string | undefined;
                       if (newsfeedImagePreview) {
-                        const uploadRes = await fetch('/api/upload', {
+                        const uploadResponse = await fetch('/api/upload', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ dataUrl: newsfeedImagePreview })
-                        }).then(r => r.json());
-                        if (uploadRes.success) imageUrl = uploadRes.url;
+                        });
+                        if (uploadResponse.ok) {
+                          const uploadRes = await uploadResponse.json();
+                          if (uploadRes.success) imageUrl = uploadRes.url;
+                        }
                       }
 
-                      const res = await fetch('/api/newsfeed', {
+                      const response = await fetch('/api/posts', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                           userId: user.id,
-                          userName: user.name,
-                          userAvatar: user.avatar,
-                          campus: user.campus,
                           content: newsfeedText,
                           imageUrl
                         })
-                      }).then(r => r.json());
+                      });
 
-                      if (res.success) {
-                        setNewsfeedPosts(prev => [res.post, ...prev]);
-                        setNewsfeedText('');
-                        setNewsfeedImagePreview(null);
+                      if (response.ok) {
+                        const res = await response.json();
+                        if (res.success) {
+                          setNewsfeedPosts(prev => [res.post, ...prev]);
+                          setNewsfeedText('');
+                          setNewsfeedImagePreview(null);
+                        }
+                      } else {
+                        console.error('Failed to create post: Server returned', response.status);
                       }
                     } catch (err) {
                       console.error('Failed to post', err);
