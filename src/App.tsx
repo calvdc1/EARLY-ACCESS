@@ -1769,7 +1769,7 @@ export default function App() {
 
     const quickActions = [
       { name: 'Newsfeed', icon: <MessageSquare size={16} />, action: () => setView('newsfeed'), unread: updatesUnread },
-      { name: 'Messenger', icon: <MessageCircle size={16} />, action: () => setView('messenger'), unread: messengerUnread },
+      { name: 'Realtime Chat', icon: <MessageCircle size={16} />, action: () => setView('messenger'), unread: messengerUnread },
       { name: 'Confession', icon: <Sparkles size={16} />, action: () => setView('confession') },
       { name: 'Scheduler', icon: <Clock size={16} />, action: () => setView('scheduler') },
       { name: 'Lost & Found', icon: <Search size={16} />, action: () => setView('lostfound') },
@@ -4502,7 +4502,7 @@ export default function App() {
         <div className="p-4 md:p-6 border-b border-white/5 flex justify-between items-center bg-black/40">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              Messenger
+              Realtime Chat
               {totalUnread > 0 && (
                 <motion.span 
                   initial={{ scale: 0.5, opacity: 0 }}
@@ -5447,13 +5447,13 @@ export default function App() {
                     <span className="font-medium">Home</span>
                   </button>
 
-                  {/* Messenger */}
+                  {/* Realtime Chat */}
                   <button
                     onClick={() => { setView('messenger'); setShowMobileNavigator(false); }}
                     className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors text-gray-300 hover:text-white group"
                   >
                     <MessageCircle size={20} className="group-hover:text-amber-500 transition-colors" />
-                    <span className="font-medium">Messages</span>
+                    <span className="font-medium">Realtime Chat</span>
                     {Object.values(unreadCounts).some(count => (count as number) > 0) && (
                       <span className="ml-auto px-2 py-1 rounded-full bg-rose-500 text-white text-xs font-bold">
                         {Object.values(unreadCounts).reduce((a, b) => (a as number) + (b as number), 0)}
